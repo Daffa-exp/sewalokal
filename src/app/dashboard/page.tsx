@@ -17,6 +17,9 @@ import {
   CreditCard,
   FileBarChart,
   RefreshCw,
+  Users,
+  FileText,
+  MapPin,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,9 +38,34 @@ const MONTH_NAMES = [
   "Juli", "Agustus", "September", "Oktober", "November", "Desember",
 ];
 
+const PROPERTY_PLACEHOLDERS = [
+  "/properties/property-1.svg",
+  "/properties/property-2.svg",
+  "/properties/property-3.svg",
+];
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 11) return "Selamat pagi";
+  if (h < 15) return "Selamat siang";
+  if (h < 18) return "Selamat sore";
+  return "Selamat malam";
+}
+
 interface DashboardOverviewData {
   propertiesCount: number;
-  properties: Array<{ id: string; name: string; city: string }>;
+  properties: Array<{
+    id: string;
+    name: string;
+    city: string;
+    address?: string;
+    imageUrl?: string | null;
+    totalRooms: number;
+    occupiedRooms: number;
+    vacantRooms: number;
+    startingRate: number;
+    occupancyRate: number;
+  }>;
   roomsStats: {
     total: number;
     occupied: number;
@@ -98,6 +126,8 @@ function DashboardOverviewContent() {
   const [phoneAlert, setPhoneAlert] = React.useState<string | null>(null);
   const [refreshIndex, setRefreshIndex] = React.useState(0);
 
+  const greeting = React.useMemo(() => getGreeting(), []);
+
   const loadData = React.useCallback(() => {
     setLoading(true);
     setRefreshIndex((prev) => prev + 1);
@@ -134,7 +164,6 @@ function DashboardOverviewContent() {
     };
   }, [currentMonth, currentYear, refreshIndex]);
 
-  // Handle WhatsApp reminder trigger
   const handleSendReminder = async (invoice: DashboardOverviewData["actionableInvoices"][0]) => {
     setPhoneAlert(null);
     const phone = invoice.occupancy.tenant.phone;
@@ -158,18 +187,15 @@ function DashboardOverviewContent() {
 
     const url = createWhatsAppReminderUrl(phone, message);
 
-    // Record reminder sent asynchronously
     try {
       await fetch(`/api/invoices/${invoice.id}/reminder`, {
         method: "POST",
       });
-      // Refresh actionable list
       loadData();
     } catch (e) {
       console.error("Gagal mencatat pengingat:", e);
     }
 
-    // Open WhatsApp
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
@@ -177,77 +203,110 @@ function DashboardOverviewContent() {
   const roomsStats = data?.roomsStats;
 
   return (
-    <div className="space-y-6">
-      {/* Header with Title and Period Filter */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
+    <div className="space-y-8">
+      {/* Editorial Header */}
+      <div className="space-y-4">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-1">
+              {greeting}
+            </p>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Ringkasan Operasional Kos
+              Ringkasan Operasional
             </h1>
-            <Badge variant="outline" className="text-xs border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
-              Data Aktif
-            </Badge>
+            <p className="text-sm text-muted-foreground mt-1">
+              Pantau ketersediaan kamar, penghuni aktif, status tagihan, dan pemasukan kos Anda.
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Pantau ketersediaan kamar, penghuni aktif, status tagihan, dan pemasukan riil kos Anda.
-          </p>
+
+          {/* Period Selector */}
+          <div className="flex flex-wrap items-center gap-2 bg-card p-2 rounded-lg border shrink-0">
+            <Calendar className="h-4 w-4 text-muted-foreground ml-1" />
+            <span className="text-xs font-medium text-muted-foreground mr-1">Periode:</span>
+
+            <select
+              value={currentMonth}
+              onChange={(e) => setCurrentMonth(parseInt(e.target.value))}
+              className="h-8 rounded-md border bg-background px-2 text-xs focus:ring-1 focus:ring-primary"
+              aria-label="Pilih Bulan"
+            >
+              {MONTH_NAMES.map((name, idx) => (
+                <option key={name} value={idx + 1}>
+                  {name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={currentYear}
+              onChange={(e) => setCurrentYear(parseInt(e.target.value))}
+              className="h-8 rounded-md border bg-background px-2 text-xs focus:ring-1 focus:ring-primary"
+              aria-label="Pilih Tahun"
+            >
+              {[currentYear - 1, currentYear, currentYear + 1].map((yr) => (
+                <option key={yr} value={yr}>
+                  {yr}
+                </option>
+              ))}
+            </select>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={loadData}
+              disabled={loading}
+              className="h-8 px-2 text-xs"
+              title="Segarkan data"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            </Button>
+
+            <div className="h-4 w-px bg-border mx-1" />
+
+            <Link
+              href="/dashboard/reports"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              <FileBarChart className="h-3.5 w-3.5 mr-1" />
+              Laporan
+            </Link>
+          </div>
         </div>
 
-        {/* Period Selector Controls */}
-        <div className="flex flex-wrap items-center gap-2 bg-card p-2 rounded-lg border">
-          <Calendar className="h-4 w-4 text-muted-foreground ml-1" />
-          <span className="text-xs font-medium text-muted-foreground mr-1">Periode:</span>
-
-          <select
-            value={currentMonth}
-            onChange={(e) => setCurrentMonth(parseInt(e.target.value))}
-            className="h-8 rounded-md border bg-background px-2 text-xs focus:ring-1 focus:ring-primary"
-            aria-label="Pilih Bulan"
-          >
-            {MONTH_NAMES.map((name, idx) => (
-              <option key={name} value={idx + 1}>
-                {name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={currentYear}
-            onChange={(e) => setCurrentYear(parseInt(e.target.value))}
-            className="h-8 rounded-md border bg-background px-2 text-xs focus:ring-1 focus:ring-primary"
-            aria-label="Pilih Tahun"
-          >
-            {[currentYear - 1, currentYear, currentYear + 1].map((yr) => (
-              <option key={yr} value={yr}>
-                {yr}
-              </option>
-            ))}
-          </select>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={loadData}
-            disabled={loading}
-            className="h-8 px-2 text-xs"
-            title="Segarkan data"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-          </Button>
-
-          <div className="h-4 w-px bg-border mx-1" />
-
+        {/* Quick Action Bar */}
+        <div className="flex flex-wrap gap-2">
           <Link
-            href="/dashboard/reports"
-            className={buttonVariants({ variant: "outline", size: "sm" })}
+            href="/dashboard/properties"
+            className={buttonVariants({ variant: "outline", size: "sm" }) + " text-xs h-8 gap-1.5"}
           >
-            <FileBarChart className="h-3.5 w-3.5 mr-1" />
-            Laporan
+            <Plus className="h-3.5 w-3.5" />
+            Tambah Properti
+          </Link>
+          <Link
+            href="/dashboard/tenants"
+            className={buttonVariants({ variant: "outline", size: "sm" }) + " text-xs h-8 gap-1.5"}
+          >
+            <Users className="h-3.5 w-3.5" />
+            Tambah Penghuni
+          </Link>
+          <Link
+            href="/dashboard/billing"
+            className={buttonVariants({ variant: "outline", size: "sm" }) + " text-xs h-8 gap-1.5"}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Terbitkan Tagihan
+          </Link>
+          <Link
+            href="/dashboard/billing"
+            className={buttonVariants({ variant: "outline", size: "sm" }) + " text-xs h-8 gap-1.5"}
+          >
+            <CreditCard className="h-3.5 w-3.5" />
+            Catat Pembayaran
           </Link>
         </div>
       </div>
 
+      {/* Error / Alert Banners */}
       {error && (
         <div
           role="alert"
@@ -273,9 +332,101 @@ function DashboardOverviewContent() {
         </div>
       )}
 
+      {/* Property Showcase */}
+      {(loading || (data?.properties && data.properties.length > 0)) && (
+        <section aria-label="Daftar Properti">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-primary" />
+              Properti Anda
+            </h2>
+            <Link
+              href="/dashboard/properties"
+              className={buttonVariants({ variant: "ghost", size: "sm" })}
+            >
+              Kelola
+              <ArrowRight className="h-3.5 w-3.5 ml-1" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {loading
+              ? [1, 2, 3].map((i) => (
+                  <div key={i} className="rounded-xl border bg-card overflow-hidden animate-pulse">
+                    <div className="aspect-video bg-muted" />
+                    <div className="p-4 space-y-2">
+                      <div className="h-4 bg-muted rounded w-2/3" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
+                      <div className="h-2 bg-muted rounded-full w-full mt-3" />
+                    </div>
+                  </div>
+                ))
+              : data?.properties.map((prop, idx) => {
+                  const coverSrc = prop.imageUrl || PROPERTY_PLACEHOLDERS[idx % PROPERTY_PLACEHOLDERS.length];
+                  const rate = prop.occupancyRate ?? 0;
+                  const rateColor =
+                    rate >= 80
+                      ? "bg-emerald-500"
+                      : rate >= 50
+                      ? "bg-amber-500"
+                      : "bg-rose-500";
+
+                  return (
+                    <Link
+                      key={prop.id}
+                      href={`/dashboard/properties/${prop.id}`}
+                      className="group rounded-xl border bg-card overflow-hidden hover:border-primary/40 hover:shadow-sm transition-all flex flex-col"
+                    >
+                      <div className="aspect-video relative overflow-hidden bg-muted">
+                        <img
+                          src={coverSrc}
+                          alt={prop.name}
+                          className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                        />
+                        <span className="absolute top-2 right-2 text-[10px] font-medium px-2 py-0.5 rounded-full bg-background/80 backdrop-blur-sm border text-foreground">
+                          {prop.city}
+                        </span>
+                      </div>
+
+                      <div className="p-4 flex flex-col gap-2 flex-1">
+                        <p className="text-sm font-semibold text-foreground leading-tight line-clamp-1">
+                          {prop.name}
+                        </p>
+                        {prop.address && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1 line-clamp-1">
+                            <MapPin className="h-3 w-3 shrink-0" />
+                            {prop.address}
+                          </p>
+                        )}
+
+                        <div className="mt-1 space-y-1">
+                          <div className="flex justify-between items-center text-[11px] text-muted-foreground">
+                            <span>{prop.occupiedRooms} / {prop.totalRooms} kamar terisi</span>
+                            <span className="font-semibold text-foreground">{rate}%</span>
+                          </div>
+                          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${rateColor}`}
+                              style={{ width: `${rate}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {prop.startingRate > 0 && (
+                          <p className="text-[11px] text-muted-foreground mt-auto">
+                            Mulai <span className="font-semibold text-foreground">{formatRupiah(prop.startingRate)}</span>/bln
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+          </div>
+        </section>
+      )}
+
       {/* KPI Cards Grid (5 cards) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Properti Aktif */}
         <Card className="hover:border-primary/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -293,7 +444,6 @@ function DashboardOverviewContent() {
           </CardContent>
         </Card>
 
-        {/* Kamar & Okupansi */}
         <Card className="hover:border-primary/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -318,7 +468,6 @@ function DashboardOverviewContent() {
           </CardContent>
         </Card>
 
-        {/* Pemasukan Riil Diterima */}
         <Card className="hover:border-primary/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -340,7 +489,6 @@ function DashboardOverviewContent() {
           </CardContent>
         </Card>
 
-        {/* Sisa Piutang */}
         <Card className="hover:border-primary/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -362,7 +510,6 @@ function DashboardOverviewContent() {
           </CardContent>
         </Card>
 
-        {/* Tagihan Terlambat */}
         <Card className="hover:border-destructive/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -385,7 +532,7 @@ function DashboardOverviewContent() {
         </Card>
       </div>
 
-      {/* Main Two Columns: Actionable Invoices & Recent Activity */}
+      {/* Main Two Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column (7 cols): Tagihan Perlu Ditindaklanjuti */}
         <div className="lg:col-span-7 space-y-4">

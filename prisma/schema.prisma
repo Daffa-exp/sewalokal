@@ -65,6 +65,7 @@ model Property {
   city        String
   description String?
   rules       String?
+  imageUrl    String?
   isArchived  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

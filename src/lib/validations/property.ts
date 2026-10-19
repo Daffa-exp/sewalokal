@@ -16,8 +16,9 @@ export const propertySchema = z.object({
     .min(2, "Kota minimal 2 karakter")
     .max(100, "Kota maksimal 100 karakter")
     .trim(),
-  description: z.string().max(1000, "Deskripsi maksimal 1000 karakter").optional(),
-  rules: z.string().max(1000, "Peraturan kos maksimal 1000 karakter").optional(),
+  description: z.string().max(1000, "Deskripsi maksimal 1000 karakter").optional().or(z.literal("")),
+  rules: z.string().max(1000, "Peraturan kos maksimal 1000 karakter").optional().or(z.literal("")),
+  imageUrl: z.string().max(500, "URL gambar maksimal 500 karakter").optional().or(z.literal("")),
 });
 
 export const roomSchema = z.object({

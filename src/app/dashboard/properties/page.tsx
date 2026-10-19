@@ -15,6 +15,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+const PROPERTY_PLACEHOLDERS = [
+  "/properties/property-1.svg",
+  "/properties/property-2.svg",
+  "/properties/property-3.svg",
+];
+
 interface Property {
   id: string;
   name: string;
@@ -22,6 +28,7 @@ interface Property {
   city: string;
   description?: string | null;
   rules?: string | null;
+  imageUrl?: string | null;
   isArchived: boolean;
   createdAt: string;
   rooms?: Array<{ id: string; status: string; monthlyRate: number }>;
@@ -209,40 +216,67 @@ export default function PropertiesPage() {
               property.rooms?.filter((r) => r.status === "OCCUPIED").length || 0;
 
             return (
-              <Card key={property.id} className="flex flex-col justify-between hover:border-foreground/20 transition-colors">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-lg font-bold truncate">
-                      {property.name}
-                    </CardTitle>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium shrink-0">
-                      {property.city}
+              <Card key={property.id} className="flex flex-col overflow-hidden hover:border-primary/40 hover:shadow-sm transition-all group">
+                {/* Cover Image */}
+                <div className="aspect-video relative overflow-hidden bg-muted">
+                  <img
+                    src={property.imageUrl || PROPERTY_PLACEHOLDERS[properties.indexOf(property) % PROPERTY_PLACEHOLDERS.length]}
+                    alt={property.name}
+                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                  />
+                  <span className="absolute top-2 right-2 text-[10px] font-medium px-2 py-0.5 rounded-full bg-background/80 backdrop-blur-sm border text-foreground">
+                    {property.city}
+                  </span>
+                  {property.isArchived && (
+                    <span className="absolute top-2 left-2 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-500/90 text-white">
+                      Diarsipkan
                     </span>
-                  </div>
-                  <CardDescription className="flex items-center gap-1.5 text-xs mt-1 truncate">
-                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                  )}
+                </div>
+
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-bold leading-tight line-clamp-1">
+                    {property.name}
+                  </CardTitle>
+                  <CardDescription className="flex items-center gap-1.5 text-xs mt-0.5 truncate">
+                    <MapPin className="h-3 w-3 shrink-0" />
                     <span className="truncate">{property.address}</span>
                   </CardDescription>
                 </CardHeader>
 
-                <CardContent className="space-y-4 pt-0">
-                  <div className="rounded-lg bg-muted/40 p-3 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <DoorOpen className="h-4 w-4 text-muted-foreground" />
-                      <span>Total Unit Kamar</span>
+                <CardContent className="space-y-3 pt-0 flex flex-col flex-1">
+                  {/* Occupancy bar */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[11px] text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <DoorOpen className="h-3 w-3" />
+                        {occupiedRooms} / {totalRooms} kamar terisi
+                      </span>
+                      <span className="font-semibold text-foreground">
+                        {totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0}%
+                      </span>
                     </div>
-                    <span className="font-semibold">
-                      {occupiedRooms} / {totalRooms} Terisi
-                    </span>
+                    <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          totalRooms > 0 && (occupiedRooms / totalRooms) >= 0.8
+                            ? "bg-emerald-500"
+                            : totalRooms > 0 && (occupiedRooms / totalRooms) >= 0.5
+                            ? "bg-amber-500"
+                            : "bg-rose-500"
+                        }`}
+                        style={{ width: totalRooms > 0 ? `${Math.round((occupiedRooms / totalRooms) * 100)}%` : "0%" }}
+                      />
+                    </div>
                   </div>
 
                   {property.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2">
+                    <p className="text-xs text-muted-foreground line-clamp-2 flex-1">
                       {property.description}
                     </p>
                   )}
 
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t">
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t mt-auto">
                     <Button
                       variant="ghost"
                       size="sm"

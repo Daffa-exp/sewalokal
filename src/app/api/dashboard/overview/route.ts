@@ -38,11 +38,26 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         propertiesCount: properties.length,
-        properties: properties.map((p) => ({
-          id: p.id,
-          name: p.name,
-          city: p.city,
-        })),
+        properties: properties.map((p) => {
+          const propertyRooms = (p as { rooms?: { status: string; monthlyRate: number }[] }).rooms ?? [];
+          const total = propertyRooms.length;
+          const occupied = propertyRooms.filter((r) => r.status === "OCCUPIED").length;
+          const vacant = propertyRooms.filter((r) => r.status === "VACANT").length;
+          const startingRate =
+            propertyRooms.length > 0 ? Math.min(...propertyRooms.map((r) => r.monthlyRate)) : 0;
+          return {
+            id: p.id,
+            name: p.name,
+            address: p.address,
+            city: p.city,
+            imageUrl: (p as { imageUrl?: string | null }).imageUrl ?? null,
+            totalRooms: total,
+            occupiedRooms: occupied,
+            vacantRooms: vacant,
+            startingRate,
+            occupancyRate: total > 0 ? Math.round((occupied / total) * 100) : 0,
+          };
+        }),
         roomsStats: {
           total: totalRooms,
           occupied: occupiedRooms,

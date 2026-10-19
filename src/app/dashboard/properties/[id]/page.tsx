@@ -9,6 +9,8 @@ import {
   Edit,
   DoorOpen,
   Eye,
+  ImageIcon,
+  Upload,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -46,6 +48,7 @@ interface PropertyDetail {
   city: string;
   description?: string | null;
   rules?: string | null;
+  imageUrl?: string | null;
   rooms: Room[];
 }
 
@@ -60,6 +63,43 @@ function PropertyDetailContent({
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [refreshKey, setRefreshKey] = React.useState(0);
+
+  // Photo upload state
+  const [uploadLoading, setUploadLoading] = React.useState(false);
+  const [uploadError, setUploadError] = React.useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadLoading(true);
+    setUploadError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || "Gagal mengunggah foto");
+      }
+      // Persist imageUrl to property
+      const putRes = await fetch(`/api/properties/${propertyId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: result.url }),
+      });
+      const putResult = await putRes.json();
+      if (!putRes.ok || !putResult.success) {
+        throw new Error(putResult.error || "Gagal menyimpan foto");
+      }
+      setRefreshKey((k) => k + 1);
+    } catch (err: unknown) {
+      setUploadError(err instanceof Error ? err.message : "Gagal mengunggah foto");
+    } finally {
+      setUploadLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   // Edit property modal
   const [isEditOpen, setIsEditOpen] = React.useState(false);
@@ -261,6 +301,60 @@ function PropertyDetailContent({
             )}
           </CardContent>
         )}
+      </Card>
+
+      {/* Photo Section */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ImageIcon className="h-4 w-4 text-muted-foreground" />
+              Foto Utama Properti
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              {uploadError && (
+                <span className="text-xs text-destructive">{uploadError}</span>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handlePhotoUpload}
+                aria-label="Unggah foto properti"
+              />
+              <button
+                type="button"
+                disabled={uploadLoading}
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border bg-background hover:bg-muted transition-colors disabled:opacity-50"
+              >
+                <Upload className="h-3.5 w-3.5" />
+                {uploadLoading ? "Mengunggah..." : property.imageUrl ? "Ganti Foto" : "Unggah Foto"}
+              </button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {property.imageUrl ? (
+            <div className="aspect-video w-full overflow-hidden rounded-lg bg-muted">
+              <img
+                src={property.imageUrl}
+                alt={property.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="aspect-video w-full rounded-lg border-2 border-dashed border-muted-foreground/20 bg-muted/30 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+              <img
+                src="/properties/property-placeholder.svg"
+                alt="Placeholder properti"
+                className="h-20 w-20 opacity-40"
+              />
+              <p className="text-xs">Belum ada foto. Unggah untuk ditampilkan di dashboard.</p>
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       {/* Rooms Section */}

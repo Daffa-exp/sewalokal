@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="blueprintGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+    <pattern id="gridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="1" stroke-opacity="0.4"/>
+    </pattern>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#blueprintGrad)"/>
+  <rect width="800" height="500" fill="url(#gridPattern)"/>
+
+  <!-- Architectural Isometric Blueprint Lines -->
+  <g stroke="#14B8A6" stroke-width="1.5" stroke-opacity="0.6" fill="none">
+    <!-- Ground plane -->
+    <polygon points="400,380 620,290 400,200 180,290"/>
+    
+    <!-- Vertical Building columns -->
+    <line x1="280" y1="250" x2="280" y2="150"/>
+    <line x1="400" y1="200" x2="400" y2="100"/>
+    <line x1="520" y1="250" x2="520" y2="150"/>
+    
+    <!-- Upper Floor Roof Outline -->
+    <polygon points="400,280 620,190 400,100 180,190" stroke="#F8FAFC" stroke-opacity="0.8" stroke-width="2"/>
+    <polygon points="400,240 560,175 400,110 240,175" stroke="#14B8A6" stroke-width="1" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- Dimension Markers -->
+  <g stroke="#94A3B8" stroke-width="1" stroke-opacity="0.5">
+    <line x1="150" y1="290" x2="150" y2="190"/>
+    <line x1="145" y1="290" x2="155" y2="290"/>
+    <line x1="145" y1="190" x2="155" y2="190"/>
+  </g>
+
+  <!-- Center Icon & Typography -->
+  <circle cx="400" cy="220" r="36" fill="#0F172A" stroke="#14B8A6" stroke-width="2"/>
+  <path d="M 388 232 L 388 214 L 400 206 L 412 214 L 412 232 Z" fill="none" stroke="#F8FAFC" stroke-width="2" stroke-linejoin="round"/>
+  <line x1="396" y1="232" x2="396" y2="222" stroke="#14B8A6" stroke-width="2"/>
+  <line x1="404" y1="232" x2="404" y2="222" stroke="#14B8A6" stroke-width="2"/>
+
+  <text x="400" y="320" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#F8FAFC" letter-spacing="1">SEWALOKAL PROPERTY</text>
+  <text x="400" y="342" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#94A3B8">Arsitektur &amp; Manajemen Hunian</text>
+</svg>

@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="skyGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E1B4B"/>
+      <stop offset="70%" stop-color="#312E81"/>
+      <stop offset="100%" stop-color="#4338CA"/>
+    </linearGradient>
+    <linearGradient id="wallGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#E2E8F0"/>
+    </linearGradient>
+    <linearGradient id="warmAmber" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEF08A"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#skyGrad3)"/>
+
+  <!-- Pavement / Deck -->
+  <rect x="0" y="420" width="800" height="80" fill="#09090B"/>
+  <rect x="0" y="420" width="800" height="3" fill="#6366F1"/>
+
+  <!-- Geometric Villa / Boutique Kos Facade -->
+  <polygon points="200,420 200,160 380,80 560,160 560,420" fill="url(#wallGrad3)" stroke="#CBD5E1" stroke-width="2"/>
+  
+  <!-- Slate Pitched Roof Edge -->
+  <polygon points="180,165 380,75 580,165 570,180 380,95 190,180" fill="#0F172A"/>
+
+  <!-- Modern Large Vertical Window Array -->
+  <rect x="240" y="190" width="80" height="110" rx="3" fill="url(#warmAmber)" stroke="#1E1B4B" stroke-width="3"/>
+  <rect x="440" y="190" width="80" height="110" rx="3" fill="url(#warmAmber)" stroke="#1E1B4B" stroke-width="3"/>
+
+  <!-- Center Circular Architectural Window -->
+  <circle cx="380" cy="180" r="35" fill="url(#warmAmber)" stroke="#1E1B4B" stroke-width="3"/>
+  <line x1="380" y1="145" x2="380" y2="215" stroke="#1E1B4B" stroke-width="2"/>
+  <line x1="345" y1="180" x2="415" y2="180" stroke="#1E1B4B" stroke-width="2"/>
+
+  <!-- Lower Floor French Doors -->
+  <rect x="250" y="320" width="60" height="100" fill="url(#warmAmber)" stroke="#1E1B4B" stroke-width="2.5"/>
+  <rect x="450" y="320" width="60" height="100" fill="url(#warmAmber)" stroke="#1E1B4B" stroke-width="2.5"/>
+
+  <!-- Portico / Main Center Entry -->
+  <rect x="340" y="290" width="80" height="130" fill="#0F172A" stroke="#4F46E5" stroke-width="2"/>
+  <rect x="355" y="320" width="50" height="100" fill="#18181B" stroke="#6366F1" stroke-width="1.5"/>
+  <circle cx="395" cy="370" r="3" fill="#FEF08A"/>
+
+  <!-- Exterior Warm Sconces -->
+  <circle cx="330" cy="340" r="5" fill="#FDE047"/>
+  <circle cx="330" cy="340" r="14" fill="#FDE047" fill-opacity="0.25"/>
+  <circle cx="430" cy="340" r="5" fill="#FDE047"/>
+  <circle cx="430" cy="340" r="14" fill="#FDE047" fill-opacity="0.25"/>
+
+  <!-- Minimalist Landscape -->
+  <rect x="130" y="380" width="50" height="40" rx="4" fill="#047857"/>
+  <rect x="580" y="380" width="50" height="40" rx="4" fill="#047857"/>
+</svg>

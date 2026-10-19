@@ -79,6 +79,7 @@ export async function createProperty(data: PropertyInput, ownerId: string) {
       city: data.city,
       description: data.description || null,
       rules: data.rules || null,
+      imageUrl: data.imageUrl || null,
       ownerId, // Always sourced from verified server session
     },
   });
@@ -103,6 +104,7 @@ export async function updateProperty(
       ...(data.city && { city: data.city }),
       ...(data.description !== undefined && { description: data.description }),
       ...(data.rules !== undefined && { rules: data.rules }),
+      ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl || null }),
     },
   });
 }
