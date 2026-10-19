@@ -1,0 +1,204 @@
+// Prisma schema for SewaLokal
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  STAFF
+}
+
+enum RoomStatus {
+  VACANT
+  OCCUPIED
+  MAINTENANCE
+}
+
+enum OccupancyStatus {
+  ACTIVE
+  TERMINATED
+  EXPIRED
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PARTIAL
+  PAID
+  OVERDUE
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CASH
+  QRIS
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  phone        String?
+  role         UserRole      @default(OWNER)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  properties   Property[]
+  tenants      Tenant[]
+  activityLogs ActivityLog[]
+
+  @@map("users")
+}
+
+model Property {
+  id          String   @id @default(cuid())
+  ownerId     String
+  name        String
+  address     String
+  city        String
+  description String?
+  rules       String?
+  isArchived  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  rooms       Room[]
+
+  @@index([ownerId])
+  @@index([isArchived])
+  @@map("properties")
+}
+
+model Room {
+  id          String      @id @default(cuid())
+  propertyId  String
+  roomNumber  String
+  type        String      @default("Standard")
+  monthlyRate Float
+  status      RoomStatus  @default(VACANT)
+  facilities  String[]    @default([])
+  notes       String?
+  isArchived  Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  property    Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  occupancies Occupancy[]
+
+  @@unique([propertyId, roomNumber])
+  @@index([propertyId])
+  @@index([status])
+  @@index([isArchived])
+  @@map("rooms")
+}
+
+model Tenant {
+  id               String      @id @default(cuid())
+  ownerId          String
+  name             String
+  phone            String?
+  email            String?
+  identityNumber   String?
+  emergencyContact String?
+  notes            String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  owner            User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  occupancies      Occupancy[]
+
+  @@index([ownerId])
+  @@map("tenants")
+}
+
+model Occupancy {
+  id            String          @id @default(cuid())
+  roomId        String
+  tenantId      String
+  startDate     DateTime
+  endDate       DateTime?
+  billingDueDay Int             @default(1)
+  depositAmount Float           @default(0)
+  monthlyRent   Float
+  status        OccupancyStatus @default(ACTIVE)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  room          Room            @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  tenant        Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  invoices      Invoice[]
+
+  @@index([roomId])
+  @@index([tenantId])
+  @@index([status])
+  @@map("occupancies")
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  occupancyId    String
+  invoiceNumber  String        @unique
+  amount         Float
+  dueDate        DateTime
+  periodMonth    Int
+  periodYear     Int
+  status         InvoiceStatus @default(UNPAID)
+  reminderSentAt DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  occupancy      Occupancy     @relation(fields: [occupancyId], references: [id], onDelete: Restrict)
+  payments       Payment[]
+
+  @@unique([occupancyId, periodMonth, periodYear])
+  @@index([occupancyId])
+  @@index([dueDate])
+  @@index([status])
+  @@map("invoices")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  invoiceId     String
+  amount        Float
+  paidAt        DateTime      @default(now())
+  paymentMethod PaymentMethod @default(BANK_TRANSFER)
+  notes         String?
+  proofUrl      String?
+  recordedById  String
+  isCancelled   Boolean       @default(false)
+  cancelledAt   DateTime?
+  cancelReason  String?
+  createdAt     DateTime      @default(now())
+
+  invoice       Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+  @@index([paidAt])
+  @@index([isCancelled])
+  @@map("payments")
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String
+  entityType String
+  entityId   String?
+  details    String?
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
